@@ -1,5 +1,5 @@
 private var motor : CharacterMotor;
-
+private var flag = true;
 // Use this for initialization
 function Awake () {
 	motor = GetComponent(CharacterMotor);
@@ -7,6 +7,23 @@ function Awake () {
 
 // Update is called once per frame
 function Update () {
+
+	if (Input.GetKeyDown(KeyCode.Escape)){
+		flag = !flag;
+	}
+	
+	if (!flag){
+		GetComponent(CharacterMotor).enabled = false;
+		GetComponent("MouseLook").enabled = false;
+		Cursor.lockState = CursorLockMode.Locked;
+		Cursor.visible = true;
+	}else {
+		GetComponent(CharacterMotor).enabled = true;
+		GetComponent("MouseLook").enabled = true;
+		Cursor.lockState = CursorLockMode.None;
+		Cursor.visible = false;
+	}
+
 	// Get the input vector from keyboard or analog stick
 	var directionVector = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
 	
