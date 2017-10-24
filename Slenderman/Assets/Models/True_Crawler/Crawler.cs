@@ -11,7 +11,7 @@ public class Crawler : MonoBehaviour {
 	private float inputV;
 
 	// Use this for initialization
-	void Start () {
+	void Start () { 
 		anim = GetComponent<Animator> ();
 		rigidbody = GetComponent<Rigidbody> ();
 	}

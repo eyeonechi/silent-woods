@@ -12,8 +12,8 @@ public class InteractScript : MonoBehaviour {
 	void Awake()
 	{
 		Scene currentScene = SceneManager.GetActiveScene ();
-		Debug.Log (currentScene.name);
-		Debug.Log (created && currentScene.name.Equals ("Game"));
+		//Debug.Log (currentScene.name);
+		//Debug.Log (created && currentScene.name.Equals ("Game"));
 
 		if (!created) {
 			DontDestroyOnLoad (transform.parent);
