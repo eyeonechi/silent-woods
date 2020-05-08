@@ -9,15 +9,15 @@ public class EnemyMovement : MonoBehaviour {
 
     public float speed;
 
-    private bool isOffScreen;
+    public bool isOffScreen;
 
     public float offScreenDotRange = 0.7f;
 
-    private bool isVisible = false;
+   public bool isVisible = false;
     public float visibleDotRange = 0.8f;
 
     private bool isInRange = false;
-    public float followDistance = 24.0f;
+    float followDistance;
     public float maxVisibleDistance = 25.0f;
 
     public float startingDistance;
@@ -37,72 +37,109 @@ public class EnemyMovement : MonoBehaviour {
     GameObject staticObject;
     private float newAlpha;
     private object sceneManager;
+    bool startMoving = false;
 
+    float teleportDistance;
+    float teleportRate;
+    float dist = 1000;
+
+	public void SaveState()
+	{
+		PlayerState.instance.enemyTeleportRate = teleportRate;
+		PlayerState.instance.enemyTeleportDistance = teleportDistance;
+	}
 
     // Use this for initialization
     void Start () {
-		if (player == null)
-        {
-            player = GameObject.Find("Player").transform;
-        }
+		player = GameObject.Find("Player").transform;
         enemy = transform;
+
         followDistance = startingDistance;
-        InvokeRepeating("TeleportEnemy", 1, 10);
+
+		teleportRate = PlayerState.instance.enemyTeleportRate;
+		teleportDistance = PlayerState.instance.enemyTeleportDistance;
+
+        InvokeRepeating("TeleportEnemy", 1, teleportRate);
 
         staticObject = GameObject.Find("StaticObject");
+
 	}
 
     // Update is called once per frame
     void Update()
     {
-
-        
-
-        checkOffScreen();
-        if (isOffScreen)
+       // Debug.Log("dist = " + dist);
+       // Debug.Log("isVisible = " + isVisible);
+        //  Debug.Log("startMoving " + startMoving);
+         // Debug.Log("followDistance = " + followDistance);
+         // Debug.Log("teleportDistance = " + teleportDistance);
+         // Debug.Log("teleportRate = " + teleportRate);
+        if (startMoving)
         {
-            MoveEnemy();
-            RestoreHealth();
-        }
-        else
-        {
-            CheckIfVisible();
-            if (isVisible)
+            dist = (enemy.position - player.position).sqrMagnitude;
+
+            if (dist > 1000)
             {
-                DeductHealth();
-                StopEnemy();
+                RestoreHealth();
+            }
 
-               
-                AudioSource.PlayClipAtPoint(enemySightedSFX, player.position, (1 - health / 100.0f)*0.5f);
-                
-                hasPlayedSeenSound = true;
+            checkOffScreen();
 
+            if (isOffScreen)
+            {
+                MoveEnemy();
+                RestoreHealth();
+
+                if (dist < 100)
+                {
+
+                    DeductHealth();
+                    StopEnemy();
+
+
+                    AudioSource.PlayClipAtPoint(enemySightedSFX, player.position, (1 - health / 100.0f) * 0.05f);
+                }
             }
             else
             {
-                // If far away then move, else stop
-                if (!isInRange)
+                CheckIfVisible();
+                if (isVisible)
                 {
-                    MoveEnemy();
+                    DeductHealth();
+                    StopEnemy();
+
+
+                    AudioSource.PlayClipAtPoint(enemySightedSFX, player.position, (1 - health / 100.0f) * 0.05f);
+
+                    
+
                 }
                 else
                 {
-                    StopEnemy();
+                    // If far away then move, else stop
+                    if (!isInRange)
+                    {
+                        MoveEnemy();
+                    }
+                    else
+                    {
+                        StopEnemy();
+                    }
                 }
-                // Reset hasPlayedSeenSound for next time isVisible first occurs
-                hasPlayedSeenSound = false;
             }
         }
+       
     }
 
 
     void DeductHealth()
     {
-        health -= damage * Time.deltaTime;
+        health -= (damage+10f) * Time.deltaTime;
 
+
+        if (health <= 50) newAlpha = (1.0f - health / 100) * 0.5f;
+        else newAlpha = 0.0f;
        
-
-        newAlpha = (1.0f - health / 100) * 0.5f;
         
         Renderer rend = staticObject.GetComponent<Renderer>();
         Color col = rend.material.GetColor("_Color");
@@ -115,7 +152,8 @@ public class EnemyMovement : MonoBehaviour {
             health = 0.0f;
             // Restart/End Game
             Cursor.visible = true;
-            Destroy(GameObject.Find("Player"));
+
+			Destroy(GameObject.Find("PlayerState"));
             SceneManager.LoadScene("Ending");
         }
     }
@@ -124,8 +162,9 @@ public class EnemyMovement : MonoBehaviour {
     {
         health += damage * Time.deltaTime;
 
-        newAlpha = (1.0f - health / 100) * 0.5f;
-        
+        if (health <= 50) newAlpha = (1.0f - health / 100) * 0.5f;
+        else newAlpha = 0.0f; 
+
         Renderer rend = staticObject.GetComponent<Renderer>();
         Color col = rend.material.GetColor("_Color");
         col.a = newAlpha;
@@ -191,6 +230,9 @@ public class EnemyMovement : MonoBehaviour {
         Vector3 forward = player.forward.normalized;
         Vector3 other = (enemy.position - player.position).normalized;
         float product = Vector3.Dot(forward, other);
+
+        
+
         if (product > visibleDotRange)
         {
             CheckMaxVisibleRange();
@@ -198,9 +240,10 @@ public class EnemyMovement : MonoBehaviour {
             {
                 // Linecast to check for occlusion
                 RaycastHit hit;
-                if (Physics.Linecast(enemy.position + (Vector3.up * 1.75f) + enemy.forward, player.position, out hit))
+                if (Physics.Raycast(player.position, player.transform.forward, out hit, 25f))
+               // if (Physics.Linecast(enemy.position + /*(Vector3.up * 1.75f) +*/ enemy.forward, player.position, out hit))
                 {
-                    if (hit.collider.gameObject.name == "Player")
+                    if (hit.collider.gameObject.name == "Enemy")
                     {
                         isVisible = true;
                     }
@@ -215,6 +258,9 @@ public class EnemyMovement : MonoBehaviour {
         {
             isVisible = false;
         }
+
+        
+
     }
 
 
@@ -260,10 +306,11 @@ public class EnemyMovement : MonoBehaviour {
     }
 
 
-    void TeleportEnemy()
+    public void TeleportEnemy()
     {
         // Check if out-of-view, then move
         checkOffScreen();
+       
         // If off screen, check for teleport
         if (isOffScreen)
         {
@@ -272,23 +319,27 @@ public class EnemyMovement : MonoBehaviour {
             if (!isInRange)
             {
                 // Determine a position to teleport to
-                float teleportDistance = 50.0f;
-                int randomPosition = -1;
-                if (Random.Range(0, 2) == 1)
+                
+                int randomPosition = 1;
+               /* if (Random.Range(0, 2) == 1)
                 {
                     randomPosition = 1;
-                }
-                Vector3 newPosition = player.position + (randomPosition * player.right * teleportDistance);
+                }*/
+                Vector3 newPosition = player.position + (randomPosition * player.forward * teleportDistance);
+                float yPos = newPosition.y;
                 newPosition.y = 1000.0f;
                 // Raycast to that position
                 RaycastHit hit;
                 if (Physics.Raycast(newPosition, -Vector3.up, out hit, 1000.0f))
                 {
+                    // Debug.Log("teleport");
                     // Check if hits the terrain
                     if (hit.collider.gameObject.name == "Terrain")
                     {
                         // Move the enemy to the new position
-                        enemy.position = hit.point + (Vector3.up * 0.5f);
+                        //enemy.position = hit.point + (Vector3.up * 0.5f);
+                        newPosition.y = yPos;
+                        enemy.position = newPosition + (Vector3.up * 0.5f);
                         enemy.LookAt(player);
                     }
                 }
@@ -297,6 +348,25 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     
+    public void startMovement()
+    {
+        startMoving = true;
+    }
+
+    public void increaseTeleRate(int reduceTime)
+    {
+        CollectPaper paperScript = GameObject.Find("Papers").GetComponent<CollectPaper>();
+
+        teleportRate = 10f - reduceTime;
+        teleportDistance = 50f - reduceTime * 5;
+        InvokeRepeating("TeleportEnemy", 1, teleportRate);
+		if (paperScript.papers >= paperScript.papersToWin)
+        {
+            teleportDistance = 5f;
+
+        }
+
+    }
 
     void OnGUI()
     {

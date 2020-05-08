@@ -9,17 +9,7 @@ public class GameEndScreensController : MonoBehaviour {
 
     void Start()
     {
-		/*
-        // Display text based on last game result
-        if (InGameController.lastGameWon)
-        {
-            this.resultText.text = "You have escaped from the nightmare.. for now...";
-        }
-        else
-        {
-            this.resultText.text = "You have died!";
-        }
-		*/
+        Cursor.visible = true;
     }
 
     public void OnBackButtonPressed()

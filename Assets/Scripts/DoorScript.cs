@@ -13,6 +13,8 @@ public class DoorScript : MonoBehaviour {
 	{
 		AudioSource audio = GetComponent<AudioSource>();
 		open = !open;
+        audio.volume = 0.2f;
+       
 		audio.Play ();
 	}
 
