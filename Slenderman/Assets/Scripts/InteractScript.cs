@@ -6,6 +6,26 @@ public class InteractScript : MonoBehaviour {
 
 	public float interactDistance = 5f;
 	public AudioClip keyPickup;
+	private Vector3 position;
+	static bool created = false;
+
+	void Awake()
+	{
+		Scene currentScene = SceneManager.GetActiveScene ();
+		//Debug.Log (currentScene.name);
+		//Debug.Log (created && currentScene.name.Equals ("Game"));
+
+		if (!created) {
+			DontDestroyOnLoad (transform.parent);
+			DontDestroyOnLoad (GameObject.Find ("Terrain"));
+			DontDestroyOnLoad (GameObject.Find ("Building"));
+			DontDestroyOnLoad (GameObject.Find ("Plane"));
+			created = true;
+		} else if (created && currentScene.name.Equals("Game")){
+			//Destroy (transform.parent.gameObject);
+		}
+		Debug.Log (created);
+	}
 
 	void Update () 
 	{
@@ -15,7 +35,16 @@ public class InteractScript : MonoBehaviour {
 			RaycastHit hit;
 			if(Physics.Raycast(ray, out hit, interactDistance))
 			{
-				if(hit.collider.CompareTag("Door"))
+				if (hit.collider.CompareTag("HouseScene"))
+				{
+					position = transform.parent.position;
+					position.y = 6;
+					transform.parent.position = position;
+					position = transform.parent.position;
+					//Destroy (this.gameObject);
+					SceneManager.LoadScene ("Inside");
+				}
+				else if(hit.collider.CompareTag("Door"))
 				{
 					DoorScript doorScript = hit.collider.transform.parent.GetComponent<DoorScript>();
 					if(doorScript == null) return;
@@ -39,7 +68,11 @@ public class InteractScript : MonoBehaviour {
 				}
 				else if(hit.collider.CompareTag("NextLeveldoor"))
 				{
-					SceneManager.LoadScene ("Outside");
+					position = transform.parent.position;
+					position.y = 6;
+					transform.parent.position = position;
+					//Destroy (this.gameObject);
+					SceneManager.LoadScene ("Game");
 				}
 			}
 			

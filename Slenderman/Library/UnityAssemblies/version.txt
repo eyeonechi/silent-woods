@@ -1,5 +1,9 @@
 5.6.2f1:3.3.0.0
+<<<<<<< HEAD
 StandaloneWindows
+=======
+StandaloneWindows64
+>>>>>>> feature-reset
 C:/Program Files/Unity 5.6.2/Editor/Data/Managed/UnityEngine.dll
 C:/Program Files/Unity 5.6.2/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll
 C:/Program Files/Unity 5.6.2/Editor/Data/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll

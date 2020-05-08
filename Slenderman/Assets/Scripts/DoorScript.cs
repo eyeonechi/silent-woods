@@ -11,8 +11,9 @@ public class DoorScript : MonoBehaviour {
 
 	public void ChangeDoorState()
 	{
+		AudioSource audio = GetComponent<AudioSource>();
 		open = !open;
-		//audio.Play ();
+		audio.Play ();
 	}
 
 	void Update () 

@@ -16,11 +16,12 @@ public class FlickeringLight : MonoBehaviour {
 	
 	void Update () 
 	{
+		AudioSource audio = GetComponent<AudioSource> ();
 		timer -= Time.deltaTime;
 		if(timer <= 0)
 		{
 			l.enabled = !l.enabled;
-			//audio.Play();
+			audio.Play();
 			timer = Random.Range(minTime, maxTime);
 		}
 	}
